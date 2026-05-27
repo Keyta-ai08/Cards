@@ -58,7 +58,7 @@ def game20up_view(page: ft.Page, current_user_icon):
             height=160,
             bgcolor=bg_color,
             border_radius=12,
-            border=ft.border.all(2, text_color),
+            border=ft.Border.all(2, text_color),
             alignment=ft.alignment.Alignment(0, 0),
             shadow=ft.BoxShadow(
                 spread_radius=1,

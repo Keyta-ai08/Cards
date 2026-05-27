@@ -52,7 +52,7 @@ def selection_view(page: ft.Page, user_icon):
                                         height=200,
                                         bgcolor=ft.Colors.GREEN_50,
                                         border_radius=10,
-                                        border=ft.border.all(2, ft.Colors.GREEN_400),
+                                        border=ft.Border.all(2, ft.Colors.GREEN_400),
                                         on_click=lambda e: on_game_select(page, 1),
                                         ink=True
                                     ),
@@ -66,7 +66,7 @@ def selection_view(page: ft.Page, user_icon):
                                         height=200,
                                         bgcolor=ft.Colors.GREY_200,
                                         border_radius=10,
-                                        border=ft.border.all(2, ft.Colors.GREY_400),
+                                        border=ft.Border.all(2, ft.Colors.GREY_400),
                                         on_click=lambda e: on_game_select(page, 2),
                                         ink=True
                                     )
