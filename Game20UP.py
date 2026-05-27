@@ -28,37 +28,55 @@ def game20up_view(page: ft.Page, current_user_icon):
         color=ft.Colors.GREEN_300
     )
 
-    def get_suit_style(card_name: str):
-        if "Kreuz" in card_name:
-            return "♣", ft.Colors.BLUE_GREY_100, ft.Colors.BLACK
-        elif "Pik" in card_name:
-            return "♠", ft.Colors.BLUE_GREY_100, ft.Colors.BLUE_900
-        elif "Herz" in card_name:
-            return "♥", ft.Colors.RED_50, ft.Colors.RED_ACCENT
-        elif "Karo" in card_name:
-            return "♦", ft.Colors.ORANGE_50, ft.Colors.ORANGE_900
-        return "?", ft.Colors.WHITE, ft.Colors.BLACK
+    def get_card_sprite_pos(card_name: str):
+        suit_map = {
+            "Karo": 0,
+            "Pik": 1,
+            "Herz": 2,
+            "Kreuz": 3
+        }
+        val_map = {
+            "Ass": 0, "2": 1, "3": 2, "4": 3, "5": 4, 
+            "6": 5, "7": 6, "8": 7, "9": 8, "10": 9, 
+            "Bube": 10, "Dame": 11, "König": 12
+        }
+        parts = card_name.split(" ")
+        suit = parts[0]
+        val_str = parts[1] if len(parts) > 1 else ""
+        
+        row = suit_map.get(suit, 0)
+        col = val_map.get(val_str, 0)
+        return row, col
 
     def build_card_widget(card):
-        suit_char, bg_color, text_color = get_suit_style(card["name"])
-        parts = card["name"].split(" ")
-        card_value_str = parts[1] if len(parts) > 1 else card["name"]
+        row, col = get_card_sprite_pos(card["name"])
+        
+        # Original Image Size: 5916 x 2536
+        # Ratio of card: width=115, height=160
+        card_width = 115
+        card_height = 160
+        full_width = card_width * 13
+        full_height = card_height * 4
+        
+        image_stack = ft.Stack(
+            controls=[
+                ft.Image(
+                    src="cards.jpeg",
+                    width=full_width,
+                    height=full_height,
+                    fit=ft.BoxFit.FILL,
+                    left=-col * card_width,
+                    top=-row * card_height,
+                )
+            ]
+        )
         
         return ft.Container(
-            content=ft.Column(
-                controls=[
-                    ft.Text(suit_char, size=32, color=text_color, weight=ft.FontWeight.BOLD),
-                    ft.Text(card_value_str, size=16, color=text_color, weight=ft.FontWeight.BOLD),
-                    ft.Text(f"Wert: {card['value']}", size=12, color=ft.Colors.GREY_700),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            ),
-            width=110,
-            height=160,
-            bgcolor=bg_color,
-            border_radius=12,
-            border=ft.Border.all(2, text_color),
+            content=image_stack,
+            width=card_width,
+            height=card_height,
+            border_radius=8,
+            clip_behavior=ft.ClipBehavior.HARD_EDGE,
             alignment=ft.alignment.Alignment(0, 0),
             shadow=ft.BoxShadow(
                 spread_radius=1,
