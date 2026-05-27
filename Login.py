@@ -108,7 +108,7 @@ def login(page: ft.Page):
     
     return ft.View(
         appbar=ft.AppBar(
-            title=ft.Text("20-UP"),
+            title=ft.Text("Spiele-Zentrale"),
             bgcolor=ft.Colors.GREEN,
         ),
         route="/login",
@@ -209,7 +209,7 @@ def register(page: ft.Page):
     
     return ft.View(
         appbar=ft.AppBar(
-            title=ft.Text("20-UP"),
+            title=ft.Text("Spiele-Zentrale"),
             bgcolor=ft.Colors.GREEN,
         ),
         route="/register",

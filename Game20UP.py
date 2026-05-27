@@ -4,7 +4,7 @@ from classes.DeckManager import DeckManager as DM
 
 import flet as ft
 
-def game_view(page: ft.Page, current_user_icon):
+def game20up_view(page: ft.Page, current_user_icon):
     deck_manager = DM(draw_amount=5)
     current_hand = []
 
@@ -119,7 +119,7 @@ def game_view(page: ft.Page, current_user_icon):
                 )
             ]
         ),
-        route="/game",
+        route="/game_20up",
         controls=[
             ft.SafeArea(
                 content=ft.Container(

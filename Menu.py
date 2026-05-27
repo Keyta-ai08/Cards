@@ -1,5 +1,6 @@
 #Eigene Imports
-import Game
+import GameSelection
+import Game20UP
 import Login
 import Settings
 
@@ -26,8 +27,8 @@ def menu(page: ft.Page):
         nonlocal choice
         choice = option
         if choice == 1:
-            page.navigate("/game")
-            page.views.append(Game.game_view(page,user_icon))
+            page.navigate("/game_selection")
+            page.views.append(GameSelection.selection_view(page,user_icon))
             page.update()
         elif choice == 2:
             page.navigate("/settings")
@@ -41,7 +42,7 @@ def menu(page: ft.Page):
        
     return ft.View(
         appbar=ft.AppBar(
-            title=ft.Text("20-UP"),
+            title=ft.Text("Spiele-Zentrale"),
             bgcolor=ft.Colors.GREEN,
             actions=[
                 ft.Container(
@@ -63,7 +64,7 @@ def menu(page: ft.Page):
                                             content=ft.Text("Hauptmenü", size=30, weight=ft.FontWeight.BOLD)
                                         ),
                                         ft.Container(
-                                            content=ft.Button("Spielen", on_click=lambda e: on_click(page, 1, user_icon))
+                                            content=ft.Button("Spieleauswahl", on_click=lambda e: on_click(page, 1, user_icon))
                                         ),
                                         ft.Container(
                                             content=ft.Button("Einstellungen", on_click=lambda e: on_click(page, 2, user_icon))

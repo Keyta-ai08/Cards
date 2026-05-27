@@ -71,7 +71,7 @@ def home(page: ft.Page):
                                 ft.Column(
                                     controls=[
                                         ft.Container(
-                                            content=ft.Text("Willkommen zu 20-UP!", size=30, weight=ft.FontWeight.BOLD)
+                                            content=ft.Text("Willkommen zur Spiele-Zentrale!", size=30, weight=ft.FontWeight.BOLD)
                                         )  
                                     ]
                                 )
@@ -107,7 +107,7 @@ def on_button_click(page: ft.Page):
     page.update()
 
 def main(page: ft.Page):
-    page.title = "20-UP"
+    page.title = "Spiele-Zentrale"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     
