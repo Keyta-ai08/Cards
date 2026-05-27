@@ -1,13 +1,21 @@
 import flet as ft
-from classes.Game import Game
+import asyncio
+from classes.Game20UP import Game20UP
 
-def game_view(page: ft.Page, current_user_icon, game_instance: Game):
+def game_view(page: ft.Page, current_user_icon, game_instance: Game20UP):
     # Controls
     turn_text = ft.Text(
         value="Aktueller Zug:",
         size=28,
         weight=ft.FontWeight.BOLD,
         color=ft.Colors.AMBER_400
+    )
+    
+    trump_text = ft.Text(
+        value="Trumpf: Noch nicht gewählt",
+        size=18,
+        weight=ft.FontWeight.BOLD,
+        color=ft.Colors.PURPLE_200
     )
     
     scoreboard_container = ft.Column(
@@ -26,26 +34,18 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
         spacing=15
     )
     
-    score_text = ft.Text(
-        value="Gesamtpunktzahl: 0",
-        size=24,
-        weight=ft.FontWeight.BOLD,
-        color=ft.Colors.WHITE
-    )
-    
     status_text = ft.Text(
-        value="Ziehe eine Karte, um das Spiel zu starten!",
-        size=16,
+        value="",
+        size=18,
         color=ft.Colors.GREEN_300
     )
 
+    # Make sure we start the first round when we load the view
+    if game_instance.state == game_instance.DEALING_3 and not game_instance.players[0].hand:
+        game_instance.start_round()
+
     def get_card_sprite_pos(card_name: str):
-        suit_map = {
-            "Karo": 0,
-            "Pik": 1,
-            "Herz": 2,
-            "Kreuz": 3
-        }
+        suit_map = {"Karo": 0, "Pik": 1, "Herz": 2, "Kreuz": 3}
         val_map = {
             "Ass": 0, "2": 1, "3": 2, "4": 3, "5": 4, 
             "6": 5, "7": 6, "8": 7, "9": 8, "10": 9, 
@@ -54,16 +54,10 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
         parts = card_name.split(" ")
         suit = parts[0]
         val_str = parts[1] if len(parts) > 1 else ""
-        
-        row = suit_map.get(suit, 0)
-        col = val_map.get(val_str, 0)
-        return row, col
+        return suit_map.get(suit, 0), val_map.get(val_str, 0)
 
-    def build_card_widget(card):
+    def build_card_widget(card, on_click_handler=None, disabled=False):
         row, col = get_card_sprite_pos(card["name"])
-        
-        # Original Image Size: 5916 x 2536
-        # Ratio of card: width=115, height=160
         card_width = 115
         card_height = 160
         full_width = card_width * 13
@@ -95,18 +89,73 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
                 color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK),
                 offset=ft.Offset(2, 2)
             ),
-            animate=ft.Animation(300, ft.AnimationCurve.EASE_OUT)
+            animate=ft.Animation(300, ft.AnimationCurve.EASE_OUT),
+            on_click=on_click_handler if not disabled else None,
+            ink=not disabled,
+            opacity=0.5 if disabled else 1.0
         )
+
+    def on_card_click(e, card):
+        current_player = game_instance.get_current_player()
+        if not current_player: return
         
-    def build_table_widget():
-        return ft.Container(
-            content=ft.Image(
-                src="Table.jpeg",
-                width=250,
-                height=150,
-                fit=ft.BoxFit.FILL,
+        if game_instance.state == game_instance.PLAYING_TRICK:
+            if not game_instance.can_play_card(current_player, card):
+                page.snack_bar = ft.SnackBar(ft.Text("Farbzwang! Du musst die angespielte Farbe bedienen."))
+                page.snack_bar.open = True
+                page.update()
+                return
+            
+            success = game_instance.play_card(current_player, card)
+            if success:
+                update_ui()
+                if game_instance.state == game_instance.ROUND_EVALUATION:
+                    # Delay for 2 seconds then evaluate
+                    page.run_task(delayed_evaluation)
+
+    async def delayed_evaluation():
+        await asyncio.sleep(2)
+        game_instance.evaluate_trick()
+        update_ui()
+
+    def show_trump_dialog(current_player):
+        def on_trump_selected(e, suit):
+            dlg.open = False
+            game_instance.set_trump(suit)
+            update_ui()
+            page.update()
+            
+        def build_trump_button(card):
+            suit = card["name"].split(" ")[0]
+            # Map suits to icons/colors
+            color = ft.Colors.RED if suit in ["Herz", "Karo"] else ft.Colors.BLACK
+            icon = ft.Icons.FAVORITE if suit == "Herz" else (ft.Icons.SPORTS_ESPORTS if suit == "Kreuz" else ft.Icons.WINDOW)
+            if suit == "Karo": icon = ft.Icons.DIAMOND
+            
+            return ft.ElevatedButton(
+                content=ft.Text(suit),
+                icon=icon,
+                color=color,
+                on_click=lambda e, s=suit: on_trump_selected(e, s)
             )
+
+        buttons = []
+        # Unique suits from hand
+        suits_seen = set()
+        for c in current_player.hand:
+            s = c["name"].split(" ")[0]
+            if s not in suits_seen:
+                buttons.append(build_trump_button(c))
+                suits_seen.add(s)
+
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(f"{current_player.name}, wähle den Trumpf!"),
+            content=ft.Column(controls=buttons, tight=True),
         )
+        page.dialog = dlg
+        dlg.open = True
+        page.update()
 
     def update_ui():
         current_player = game_instance.get_current_player()
@@ -117,56 +166,64 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
         else:
             turn_text.value = "Spiel beendet"
             
+        # Trump Info
+        if game_instance.trump_suit:
+            mult = "(x2 Punkte)" if game_instance.trump_suit == "Kreuz" else ""
+            trump_text.value = f"Trumpf: {game_instance.trump_suit} {mult}"
+        else:
+            trump_text.value = "Trumpf: Noch nicht gewählt"
+
         # Scoreboard
         scoreboard_container.controls.clear()
         scoreboard_container.controls.append(ft.Text("Punkte:", weight=ft.FontWeight.BOLD, size=18))
         for p in game_instance.get_all_players():
             color = ft.Colors.AMBER if p == current_player else ft.Colors.WHITE
             weight = ft.FontWeight.BOLD if p == current_player else ft.FontWeight.NORMAL
-            scoreboard_container.controls.append(ft.Text(f"{p.name}: {p.score}", color=color, weight=weight))
+            stiche = f" (Stiche: {p.tricks_won})" if game_instance.trump_suit else ""
+            scoreboard_container.controls.append(ft.Text(f"{p.name}: {p.score}{stiche}", color=color, weight=weight))
 
+        # Table Cards
         table_container.controls.clear()
-        table_container.controls.append(build_table_widget())
+        if game_instance.current_trick:
+            for p, c in game_instance.current_trick:
+                table_container.controls.append(
+                    ft.Column([
+                        ft.Text(p.name, size=12, color=ft.Colors.GREY_400),
+                        build_card_widget(c, disabled=True)
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+                )
+        else:
+            table_container.controls.append(
+                ft.Container(
+                    content=ft.Text("Tisch ist leer", color=ft.Colors.GREY_600),
+                    width=250, height=150, alignment=ft.alignment.Alignment(0,0)
+                )
+            )
             
+        # Hand Cards
         hand_container.controls.clear()
-        
+        is_my_turn = (game_instance.state == game_instance.PLAYING_TRICK)
         for card in game_instance.current_hand:
-            hand_container.controls.append(build_card_widget(card))
-            
-        score = game_instance.get_score()
-        score_text.value = f"Punkte ({current_player.name if current_player else ''}): {score}"
+            disabled = not is_my_turn
+            hand_container.controls.append(
+                build_card_widget(card, on_click_handler=lambda e, c=card: on_card_click(e, c), disabled=disabled)
+            )
         
         status_text.value = game_instance.get_status()
-        
-        if score == 0:
-            status_text.color = ft.Colors.GREY_400
-        elif score >= 20:
+        if game_instance.state == game_instance.GAME_OVER:
             status_text.color = ft.Colors.GREEN_ACCENT_400
         else:
             status_text.color = ft.Colors.LIGHT_BLUE_200
 
-    def on_draw_click(e):
-        card = game_instance.draw_card()
-        if card:
-            update_ui()
-            page.update()
-        else:
-            if getattr(game_instance, 'game_over', False):
-                page.snack_bar = ft.SnackBar(ft.Text("Das Spiel ist bereits beendet!"))
-            else:
-                page.snack_bar = ft.SnackBar(ft.Text("Keine Karten mehr im Stapel!"))
-            page.snack_bar.open = True
-            page.update()
-
-    def on_next_turn_click(e):
-        game_instance.next_turn()
-        update_ui()
         page.update()
+
+        # Handle Trump Selection Popup
+        if game_instance.state == game_instance.WAITING_FOR_TRUMP and current_player:
+            show_trump_dialog(current_player)
 
     def on_reset_click(e):
         game_instance.reset_game()
         update_ui()
-        page.update()
 
     # Init UI controls initially
     update_ui()
@@ -198,13 +255,13 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
                                 padding=10
                             ),
                             # Haupt-Spielbereich
-                            ft.Container(
+                            ft.Container( # !!!!Dies muss ein Container bleiben!!!!!
                                 content=ft.Column(
                                     controls=[
+                                        trump_text,
                                         ft.Container(
                                             content=ft.Column(
                                                 controls=[
-                                                    score_text,
                                                     status_text,
                                                 ],
                                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -233,25 +290,7 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
                                         ft.Row(
                                             controls=[
                                                 ft.ElevatedButton(
-                                                    content="Karte ziehen",
-                                                    icon=ft.Icons.ADD,
-                                                    on_click=on_draw_click,
-                                                    style=ft.ButtonStyle(
-                                                        color=ft.Colors.WHITE,
-                                                        bgcolor=ft.Colors.GREEN_700,
-                                                    )
-                                                ),
-                                                ft.ElevatedButton(
-                                                    content="Zug beenden",
-                                                    icon=ft.Icons.SKIP_NEXT,
-                                                    on_click=on_next_turn_click,
-                                                    style=ft.ButtonStyle(
-                                                        color=ft.Colors.WHITE,
-                                                        bgcolor=ft.Colors.ORANGE_700,
-                                                    )
-                                                ),
-                                                ft.ElevatedButton(
-                                                    content="Zurücksetzen",
+                                                    content="Spiel Neu Starten",
                                                     icon=ft.Icons.REFRESH,
                                                     on_click=on_reset_click,
                                                     style=ft.ButtonStyle(

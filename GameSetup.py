@@ -5,8 +5,9 @@ import GameSelection
 from classes.Game20UP import Game20UP
 from classes.Player import Player
 
-def game_setup_view(page: ft.Page, user_icon):
+def game_setup_view(page: ft.Page, user_icon, game_id):
     data = Login.load_data(page)
+    game_mode= game_id
     existing_users = [u["username"] for u in data["users"]]
     
     slots = []
@@ -33,6 +34,11 @@ def game_setup_view(page: ft.Page, user_icon):
         
     def start_game(e):
         players = []
+        score = 0
+        
+        if game_mode == 1:
+            score = 20
+        
         for i, slot in enumerate(slots):
             dd = slot["dd"]
             tf = slot["tf"]
@@ -47,7 +53,7 @@ def game_setup_view(page: ft.Page, user_icon):
                 name = dd.value
                 
             if name:
-                players.append(Player(name, is_guest=is_guest))
+                players.append(Player(name, score, is_guest=is_guest))
                 
         if len(players) < 3:
             page.snack_bar = ft.SnackBar(ft.Text("Für 20-UP werden mindestens 3 Spieler benötigt!"))
