@@ -1,14 +1,14 @@
-
-#Lokale Imports
-from classes.DeckManager import DeckManager as DM
-
 import flet as ft
+from classes.Game import Game
 
-def game20up_view(page: ft.Page, current_user_icon):
-    deck_manager = DM(draw_amount=5)
-    current_hand = []
-
+def game_view(page: ft.Page, current_user_icon, game_instance: Game):
     # Controls
+    table_container = ft.Row(
+        wrap=True,
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=15
+    )
+    
     hand_container = ft.Row(
         wrap=True,
         alignment=ft.MainAxisAlignment.CENTER,
@@ -89,27 +89,25 @@ def game20up_view(page: ft.Page, current_user_icon):
 
     def update_ui():
         hand_container.controls.clear()
-        total_score = sum(c["value"] for c in current_hand)
         
-        for card in current_hand:
+        for card in game_instance.current_hand:
             hand_container.controls.append(build_card_widget(card))
             
-        score_text.value = f"Gesamtpunktzahl: {total_score}"
+        score = game_instance.get_score()
+        score_text.value = f"Gesamtpunktzahl: {score}"
         
-        if total_score == 0:
-            status_text.value = "Ziehe eine Karte, um das Spiel zu starten!"
+        status_text.value = game_instance.get_status()
+        
+        if score == 0:
             status_text.color = ft.Colors.GREY_400
-        elif total_score >= 20:
-            status_text.value = "Glückwunsch! Du hast das Ziel von 20 Punkten erreicht oder überschritten!"
+        elif score >= 20:
             status_text.color = ft.Colors.GREEN_ACCENT_400
         else:
-            status_text.value = f"Noch {20 - total_score} Punkte bis zum Ziel!"
             status_text.color = ft.Colors.LIGHT_BLUE_200
 
     def on_draw_click(e):
-        card = deck_manager.draw_card()
+        card = game_instance.draw_card()
         if card:
-            current_hand.append(card)
             update_ui()
             page.update()
         else:
@@ -118,8 +116,7 @@ def game20up_view(page: ft.Page, current_user_icon):
             page.update()
 
     def on_reset_click(e):
-        current_hand.clear()
-        deck_manager.reset_deck()
+        game_instance.reset_game()
         update_ui()
         page.update()
 
