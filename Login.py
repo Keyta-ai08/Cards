@@ -6,6 +6,7 @@ import hashlib
 #Eigene Imports
 import Menu
 import flet as ft
+import local_storage
 
 DATA_FILE = Path("storage/data.json") # Deprecated, not used anymore
 
@@ -38,13 +39,13 @@ icon_map=[
 ]
 
 def load_data(page: ft.Page) -> dict:
-    data = page.client_storage.get("data")
+    data = local_storage.get("data")
     if not isinstance(data, dict):
         return {"users": [], "current_user": None}
     return {"users": [], "current_user": None, **data}
 
 def save_data(page: ft.Page, data: dict) -> None:
-    page.client_storage.set("data", data)
+    local_storage.set("data", data)
 
 def get_options() -> list[ft.DropdownOption]:
     return [

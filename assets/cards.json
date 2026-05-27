@@ -1,0 +1,164 @@
+{
+    "cards": [
+        {
+            "id": 0,
+            "name": "Kreuz 7",
+            "value": 7
+        },
+        {
+            "id": 1,
+            "name": "Herz 7",
+            "value": 7
+        },
+        {
+            "id": 2,
+            "name": "Karo 7",
+            "value": 7
+        },
+        {
+            "id": 3,
+            "name": "Pik 7",
+            "value": 7
+        },
+        {
+            "id": 4,
+            "name": "Kreuz 8",
+            "value": 8
+        },
+        {
+            "id": 5,
+            "name": "Herz 8",
+            "value": 8
+        },
+        {
+            "id": 6,
+            "name": "Karo 8",
+            "value": 8
+        },
+        {
+            "id": 7,
+            "name": "Pik 8",
+            "value": 8
+        },
+        {
+            "id": 8,
+            "name": "Kreuz 9",
+            "value": 9
+        },
+        {
+            "id": 9,
+            "name": "Herz 9",
+            "value": 9
+        },
+        {
+            "id": 10,
+            "name": "Karo 9",
+            "value": 9
+        },
+        {
+            "id": 11,
+            "name": "Pik 9",
+            "value": 9
+        },
+        {
+            "id": 12,
+            "name": "Kreuz 10",
+            "value": 10
+        },
+        {
+            "id": 13,
+            "name": "Herz 10",
+            "value": 10
+        },
+        {
+            "id": 14,
+            "name": "Karo 10",
+            "value": 10
+        },
+        {
+            "id": 15,
+            "name": "Pik 10",
+            "value": 10
+        },
+        {
+            "id": 16,
+            "name": "Kreuz Ass",
+            "value": 11
+        },
+        {
+            "id": 17,
+            "name": "Herz Ass",
+            "value": 11
+        },
+        {
+            "id": 18,
+            "name": "Karo Ass",
+            "value": 11
+        },
+        {
+            "id": 19,
+            "name": "Pik Ass",
+            "value": 11
+        },
+        {
+            "id": 20,
+            "name": "Kreuz Dame",
+            "value": 12
+        },
+        {
+            "id": 21,
+            "name": "Herz Dame",
+            "value": 12
+        },
+        {
+            "id": 22,
+            "name": "Karo Dame",
+            "value": 12
+        },
+        {
+            "id": 23,
+            "name": "Pik Dame",
+            "value": 12
+        },
+        {
+            "id": 24,
+            "name": "Kreuz König",
+            "value": 13
+        },
+        {
+            "id": 25,
+            "name": "Herz König",
+            "value": 13
+        },
+        {
+            "id": 26,
+            "name": "Karo König",
+            "value": 13
+        },
+        {
+            "id": 27,
+            "name": "Pik König",
+            "value": 13
+        },
+        {
+            "id": 28,
+            "name": "Kreuz Bube",
+            "value": 15
+        },
+        {
+            "id": 29,
+            "name": "Herz Bube",
+            "value": 14
+        },
+        {
+            "id": 30,
+            "name": "Karo Bube",
+            "value": 14
+        },
+        {
+            "id": 31,
+            "name": "Pik Bube",
+            "value": 14
+        }
+    ]
+}

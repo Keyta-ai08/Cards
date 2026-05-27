@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    container_name: cards-game
+    ports:
+      - "8550:8550"
+    volumes:
+      - ./storage:/app/storage
+      - ./assets:/app/assets
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8550').close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: PostgreSQL for future persistence needs
+  # db:
+  #   image: postgres:15-alpine
+  #   container_name: cards-db
+  #   environment:
+  #     POSTGRES_DB: cards_app
+  #     POSTGRES_USER: appuser
+  #     POSTGRES_PASSWORD: changeme
+  #   volumes:
+  #     - db_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+  #
+  # volumes:
+  #   db_data:

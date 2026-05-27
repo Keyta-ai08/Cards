@@ -5,11 +5,12 @@ import json
 #Lokale Imports
 import Login
 import Menu
+import local_storage
 
 import flet as ft
 
 def load_settings(page: ft.Page) -> dict:
-    data = page.client_storage.get("settings")
+    data = local_storage.get("settings")
     if isinstance(data, dict):
         return data
     default_settings = {"width": 485, "height": 1080, "theme": "dark"}
@@ -17,7 +18,7 @@ def load_settings(page: ft.Page) -> dict:
     return default_settings
 
 def save_settings(page: ft.Page, settings_dict: dict):
-    page.client_storage.set("settings", settings_dict)
+    local_storage.set("settings", settings_dict)
 
 def is_first_run():
     # Wir prüfen auf die versteckte Datei im Home-Verzeichnis des Nutzers
@@ -119,4 +120,4 @@ def main(page: ft.Page):
         page.update()
 
 if __name__ == "__main__":
-    ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8550)
+    ft.run(main, view=ft.AppView.WEB_BROWSER, port=8550)
