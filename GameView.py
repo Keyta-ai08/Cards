@@ -3,6 +3,17 @@ from classes.Game import Game
 
 def game_view(page: ft.Page, current_user_icon, game_instance: Game):
     # Controls
+    turn_text = ft.Text(
+        value="Aktueller Zug:",
+        size=28,
+        weight=ft.FontWeight.BOLD,
+        color=ft.Colors.AMBER_400
+    )
+    
+    scoreboard_container = ft.Column(
+        spacing=5
+    )
+
     table_container = ft.Row(
         wrap=True,
         alignment=ft.MainAxisAlignment.CENTER,
@@ -86,15 +97,44 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
             ),
             animate=ft.Animation(300, ft.AnimationCurve.EASE_OUT)
         )
+        
+    def build_table_widget():
+        return ft.Container(
+            content=ft.Image(
+                src="Table.jpeg",
+                width=250,
+                height=150,
+                fit=ft.BoxFit.FILL,
+            )
+        )
 
     def update_ui():
+        current_player = game_instance.get_current_player()
+        
+        # Turn Info
+        if current_player:
+            turn_text.value = f"Aktueller Zug: {current_player.name}"
+        else:
+            turn_text.value = "Spiel beendet"
+            
+        # Scoreboard
+        scoreboard_container.controls.clear()
+        scoreboard_container.controls.append(ft.Text("Punkte:", weight=ft.FontWeight.BOLD, size=18))
+        for p in game_instance.get_all_players():
+            color = ft.Colors.AMBER if p == current_player else ft.Colors.WHITE
+            weight = ft.FontWeight.BOLD if p == current_player else ft.FontWeight.NORMAL
+            scoreboard_container.controls.append(ft.Text(f"{p.name}: {p.score}", color=color, weight=weight))
+
+        table_container.controls.clear()
+        table_container.controls.append(build_table_widget())
+            
         hand_container.controls.clear()
         
         for card in game_instance.current_hand:
             hand_container.controls.append(build_card_widget(card))
             
         score = game_instance.get_score()
-        score_text.value = f"Gesamtpunktzahl: {score}"
+        score_text.value = f"Punkte ({current_player.name if current_player else ''}): {score}"
         
         status_text.value = game_instance.get_status()
         
@@ -111,9 +151,17 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
             update_ui()
             page.update()
         else:
-            page.snack_bar = ft.SnackBar(ft.Text("Keine Karten mehr im Stapel!"))
+            if getattr(game_instance, 'game_over', False):
+                page.snack_bar = ft.SnackBar(ft.Text("Das Spiel ist bereits beendet!"))
+            else:
+                page.snack_bar = ft.SnackBar(ft.Text("Keine Karten mehr im Stapel!"))
             page.snack_bar.open = True
             page.update()
+
+    def on_next_turn_click(e):
+        game_instance.next_turn()
+        update_ui()
+        page.update()
 
     def on_reset_click(e):
         game_instance.reset_game()
@@ -139,51 +187,91 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game):
             ft.SafeArea(
                 content=ft.Container(
                     padding=20,
-                    content=ft.Column(
+                    content=ft.Row(
                         controls=[
+                            # Scoreboard an der Seite
+                            ft.Container(
+                                content=scoreboard_container,
+                                width=150,
+                                alignment=ft.alignment.Alignment(-1, -1),
+                                border=ft.border.Border(right=ft.BorderSide(1, ft.Colors.GREY_800)),
+                                padding=10
+                            ),
+                            # Haupt-Spielbereich
                             ft.Container(
                                 content=ft.Column(
                                     controls=[
-                                        score_text,
-                                        status_text,
+                                        ft.Container(
+                                            content=ft.Column(
+                                                controls=[
+                                                    score_text,
+                                                    status_text,
+                                                ],
+                                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                            ),
+                                            margin=ft.margin.Margin(bottom=20)
+                                        ),
+                                        ft.Container(
+                                            content=table_container,
+                                            alignment=ft.alignment.Alignment(0, 0),
+                                            height=200,
+                                        ),
+                                        ft.Container(
+                                            content=ft.Column(
+                                                controls=[
+                                                    turn_text,
+                                                    hand_container
+                                                ],
+                                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                            ),
+                                            bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
+                                            border_radius=10,
+                                            padding=10,
+                                            alignment=ft.alignment.Alignment(0, 0),
+                                            height=250,
+                                        ),
+                                        ft.Row(
+                                            controls=[
+                                                ft.ElevatedButton(
+                                                    content="Karte ziehen",
+                                                    icon=ft.Icons.ADD,
+                                                    on_click=on_draw_click,
+                                                    style=ft.ButtonStyle(
+                                                        color=ft.Colors.WHITE,
+                                                        bgcolor=ft.Colors.GREEN_700,
+                                                    )
+                                                ),
+                                                ft.ElevatedButton(
+                                                    content="Zug beenden",
+                                                    icon=ft.Icons.SKIP_NEXT,
+                                                    on_click=on_next_turn_click,
+                                                    style=ft.ButtonStyle(
+                                                        color=ft.Colors.WHITE,
+                                                        bgcolor=ft.Colors.ORANGE_700,
+                                                    )
+                                                ),
+                                                ft.ElevatedButton(
+                                                    content="Zurücksetzen",
+                                                    icon=ft.Icons.REFRESH,
+                                                    on_click=on_reset_click,
+                                                    style=ft.ButtonStyle(
+                                                        color=ft.Colors.WHITE,
+                                                        bgcolor=ft.Colors.RED_700,
+                                                    )
+                                                ),
+                                            ],
+                                            alignment=ft.MainAxisAlignment.CENTER,
+                                            spacing=20,
+                                            margin=ft.margin.Margin(top=30)
+                                        )
                                     ],
                                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                ),
-                                margin=ft.margin.Margin(bottom=20)
-                            ),
-                            ft.Container(
-                                content=hand_container,
-                                alignment=ft.alignment.Alignment(0, 0),
-                                height=200,
-                            ),
-                            ft.Row(
-                                controls=[
-                                    ft.ElevatedButton(
-                                        content="Karte ziehen",
-                                        icon=ft.Icons.ADD,
-                                        on_click=on_draw_click,
-                                        style=ft.ButtonStyle(
-                                            color=ft.Colors.WHITE,
-                                            bgcolor=ft.Colors.GREEN_700,
-                                        )
-                                    ),
-                                    ft.ElevatedButton(
-                                        content="Zurücksetzen",
-                                        icon=ft.Icons.REFRESH,
-                                        on_click=on_reset_click,
-                                        style=ft.ButtonStyle(
-                                            color=ft.Colors.WHITE,
-                                            bgcolor=ft.Colors.RED_700,
-                                        )
-                                    ),
-                                ],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                spacing=20,
-                                margin=ft.margin.Margin(top=30)
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                )
                             )
                         ],
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                        alignment=ft.MainAxisAlignment.CENTER,
+                        alignment=ft.MainAxisAlignment.START,
+                        vertical_alignment=ft.CrossAxisAlignment.START,
                     )
                 )
             )

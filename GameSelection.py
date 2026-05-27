@@ -1,14 +1,13 @@
 import flet as ft
-import GameView
-from classes.Game20UP import Game20UP
+import GameSetup
 import Menu
 
 def selection_view(page: ft.Page, user_icon):
     
     def on_game_select(page: ft.Page, game_id: int):
         if game_id == 1:
-            page.navigate("/game_20up")
-            page.views.append(GameView.game_view(page, user_icon, Game20UP()))
+            page.navigate("/game_setup")
+            page.views.append(GameSetup.game_setup_view(page, user_icon))
             page.update()
         else:
             page.snack_bar = ft.SnackBar(ft.Text("Dieses Spiel ist noch nicht verfügbar!"))
