@@ -76,7 +76,9 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game20UP):
             ]
         )
         
-        return ft.Container(
+        card_img = ft.Container(
+            content=image_stack,
+                    return ft.Container(
             content=image_stack,
             width=card_width,
             height=card_height,
@@ -311,8 +313,3 @@ def game_view(page: ft.Page, current_user_icon, game_instance: Game20UP):
                         ],
                         alignment=ft.MainAxisAlignment.START,
                         vertical_alignment=ft.CrossAxisAlignment.START,
-                    )
-                )
-            )
-        ]
-    )
